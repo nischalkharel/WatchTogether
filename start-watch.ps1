@@ -13,6 +13,25 @@ if (-not $name) { throw 'Tailscale is not signed in. Open Tailscale, sign in, th
 
 if (-not (Test-Path 'node_modules\ws')) { npm install --omit=dev --no-audit --no-fund }
 
+# Private settings such as GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET live in a
+# .env file next to this script (KEY=value per line). Git ignores it.
+if (Test-Path '.env') {
+  foreach ($line in Get-Content '.env') {
+    if ($line -match '^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$') {
+      Set-Item "env:$($Matches[1])" $Matches[2].Trim('"', "'")
+    }
+  }
+}
+
+# Or the client_secret_*.json file downloaded from Google Cloud, dropped in
+# this folder as-is. Git ignores it too.
+$googleJson = Get-ChildItem -Filter 'client_secret*.json' | Select-Object -First 1
+if (-not $env:GOOGLE_CLIENT_ID -and $googleJson) {
+  $web = (Get-Content $googleJson.FullName -Raw | ConvertFrom-Json).web
+  $env:GOOGLE_CLIENT_ID = $web.client_id
+  $env:GOOGLE_CLIENT_SECRET = $web.client_secret
+}
+
 $env:NODE_ENV = 'production'
 $env:PUBLIC_URL = "https://$name"
 $env:TRUST_PROXY = '1'      # Funnel sits in front and passes on the visitor's address

@@ -8,6 +8,7 @@ test-results/
 # Local secrets
 .env
 .env.*
+client_secret*.json
 
 # Original model folders and archives (kept locally, never uploaded)
 model_a_after/
