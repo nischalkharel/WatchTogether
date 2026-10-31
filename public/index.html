@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1115">
+  <meta name="color-scheme" content="dark">
+  <meta name="referrer" content="no-referrer">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Together">
+  <meta name="format-detection" content="telephone=no">
+  <title>Watch Together</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/account.js"></script>
+</head>
+<body>
+  <header id="topbar" class="topbar" hidden>
+    <a href="/" data-nav class="logo" aria-label="Home">▶︎</a>
+    <span class="brand">Watch Together</span>
+    <a href="/account" data-nav class="btn" id="topbar-account"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> <span id="topbar-name"></span></a>
+  </header>
+
+  <!-- Signed out -->
+  <main id="screen-signin" class="page narrow" hidden>
+    <h1>Watch Together</h1>
+    <p class="sub">Watch YouTube in sync with your partner. Play, pause and skip happen for both of you.</p>
+    <p id="signin-join-note" class="note" hidden>Sign in to accept your partner’s invite.</p>
+
+    <section class="card">
+      <div class="tabs" role="tablist">
+        <button id="tab-login" class="tab" role="tab" type="button" aria-selected="true">Sign in</button>
+        <button id="tab-signup" class="tab" role="tab" type="button" aria-selected="false">Create account</button>
+      </div>
+      <form id="pw-form" autocomplete="on" novalidate>
+        <label for="pw-name" class="field" id="pw-name-field" hidden>Your name <span class="small">(what your partner sees)</span>
+          <input id="pw-name" type="text" maxlength="40" autocomplete="nickname">
+        </label>
+        <label for="pw-user" class="field">Username
+          <input id="pw-user" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="30" required>
+        </label>
+        <label for="pw-pass" class="field">Password
+          <input id="pw-pass" type="password" autocomplete="current-password" maxlength="200" required>
+        </label>
+        <p id="pw-hint" class="small" hidden>At least 10 characters. A few random words works well. Your username is private: nobody else ever sees it.</p>
+        <button id="pw-submit" class="btn primary big" type="submit">Sign in</button>
+        <div id="signin-err" class="err" role="alert" hidden></div>
+      </form>
+    </section>
+
+    <div class="or"><span>or</span></div>
+    <button id="signin-btn" class="btn big google" type="button">
+      <svg aria-hidden="true" viewBox="0 0 48 48" width="20" height="20"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+      Sign in with Google
+    </button>
+    <p id="signin-off" class="small center" hidden>Google sign-in isn’t set up on this server yet.</p>
+    <ul class="points">
+      <li>No email needed. With Google, only your first name is used. Your email is never asked for or stored.</li>
+      <li>Nobody can search for you. You link with your partner using a private invite link.</li>
+      <li>Only the two of you can ever watch together.</li>
+    </ul>
+    <a href="/privacy" data-nav class="small">Privacy</a>
+  </main>
+
+  <!-- Signed in, not linked yet -->
+  <main id="screen-link" class="page narrow" hidden>
+    <section id="incoming-box" class="card" hidden>
+      <h2>Link requests</h2>
+      <p class="small">Only accept if the code matches the one on your partner’s screen.</p>
+      <ul id="incoming" class="requests"></ul>
+    </section>
+
+    <section id="outgoing-box" class="card" hidden>
+      <h2>Waiting for <span id="outgoing-name"></span></h2>
+      <p>Ask them to open the app and accept. They should see this code:</p>
+      <div id="outgoing-code" class="code"></div>
+      <button id="outgoing-cancel" class="btn" type="button">Cancel request</button>
+    </section>
+
+    <section class="card">
+      <h2>Link with your partner</h2>
+      <p>Send your partner a private invite link. It works once and expires after 24 hours. You’ll confirm before you’re linked.</p>
+      <div id="invite-make">
+        <p id="invite-active-note" class="small" hidden>You have an invite link out (expires in <span id="invite-active-left"></span>). Making a new one cancels it. <button id="invite-cancel-active" class="linkbtn" type="button">Cancel it</button></p>
+        <button id="invite-create" class="btn primary big" type="button">Create invite link</button>
+      </div>
+      <div id="invite-made" hidden>
+        <input id="invite-url" type="text" readonly aria-label="Invite link">
+        <div class="row">
+          <button id="invite-copy" class="btn primary" type="button">Copy / share</button>
+          <button id="invite-cancel" class="btn" type="button">Cancel link</button>
+        </div>
+        <p class="small">Only send this to your partner. Expires in <span id="invite-left"></span>.</p>
+      </div>
+      <div id="invite-err" class="err" role="alert" hidden></div>
+    </section>
+    <p class="small center">Got a link from your partner? Just open it.</p>
+  </main>
+
+  <!-- Opened an invite link -->
+  <main id="screen-join" class="page narrow" hidden>
+    <section class="card">
+      <p id="join-loading">Checking invite…</p>
+      <div id="join-ask" hidden>
+        <h2>Link with <span id="join-name"></span>?</h2>
+        <p>You’ll be able to watch together. Nobody else can join you.</p>
+        <div class="row">
+          <button id="join-yes" class="btn primary" type="button">Yes, send request</button>
+          <button id="join-no" class="btn" type="button">No</button>
+        </div>
+      </div>
+      <div id="join-done" hidden>
+        <h2>Request sent</h2>
+        <p><span id="join-done-name"></span> needs to accept. Check that their screen shows this code:</p>
+        <div id="join-done-code" class="code"></div>
+        <button id="join-continue" class="btn" type="button">OK</button>
+      </div>
+      <div id="join-err" class="err" role="alert" hidden></div>
+    </section>
+  </main>
+
+  <!-- Account -->
+  <main id="screen-account" class="page narrow" hidden>
+    <h1>Your account</h1>
+    <section class="card">
+      <h2>Your name</h2>
+      <p class="small">This is what your partner sees.</p>
+      <form id="acct-name-form" class="row" autocomplete="off">
+        <input id="acct-name" type="text" maxlength="40" aria-label="Your name" autocomplete="off">
+        <button id="acct-name-save" class="btn primary" type="submit">Save</button>
+      </form>
+      <div id="acct-name-ok" class="ok" hidden>Saved</div>
+      <div id="acct-name-err" class="err" role="alert" hidden></div>
+    </section>
+
+    <section class="card">
+      <h2>Partner</h2>
+      <p><strong id="acct-partner"></strong> <span id="acct-since" class="small"></span></p>
+      <button id="acct-unlink" class="btn" type="button">Unlink</button>
+      <div id="unlink-confirm" hidden>
+        <p>Unlink? You won’t be able to watch together until you link again.</p>
+        <div class="row">
+          <button id="unlink-yes" class="btn danger" type="button">Yes, unlink</button>
+          <button id="unlink-no" class="btn" type="button">Cancel</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 id="pw-section-title">Password</h2>
+      <p id="pw-section-info" class="small"></p>
+      <form id="pw-change-form" autocomplete="on" novalidate>
+        <input id="pw-change-user" type="text" autocomplete="username" hidden>
+        <label for="pw-new-user" class="field" id="pw-new-user-field" hidden>Choose a username
+          <input id="pw-new-user" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="30">
+        </label>
+        <label for="pw-current" class="field" id="pw-current-field">Current password
+          <input id="pw-current" type="password" autocomplete="current-password" maxlength="200">
+        </label>
+        <label for="pw-new" class="field">New password
+          <input id="pw-new" type="password" autocomplete="new-password" maxlength="200">
+        </label>
+        <button id="pw-change-save" class="btn primary" type="submit">Save password</button>
+      </form>
+      <div id="pw-change-ok" class="ok" hidden>Saved. Any other devices have been signed out.</div>
+      <div id="pw-change-err" class="err" role="alert" hidden></div>
+    </section>
+
+    <section class="card">
+      <h2>Privacy &amp; security</h2>
+      <div class="stack">
+        <button id="acct-export" class="btn" type="button">Download my data</button>
+        <button id="acct-signout" class="btn" type="button">Sign out</button>
+        <button id="acct-signout-all" class="btn" type="button">Sign out on all devices</button>
+      </div>
+      <p class="small">Lost a phone? “Sign out on all devices” ends every session straight away.</p>
+      <div id="acct-err" class="err" role="alert" hidden></div>
+    </section>
+
+    <section class="card danger-zone">
+      <h2>Delete account</h2>
+      <p>Permanently deletes your account, unlinks your partner and removes everything stored about you. This can’t be undone.</p>
+      <form id="delete-form" autocomplete="off">
+        <label for="delete-confirm" class="small">Type DELETE to confirm</label>
+        <div class="row">
+          <input id="delete-confirm" type="text" autocapitalize="characters" autocomplete="off" spellcheck="false">
+          <button id="delete-go" class="btn danger" type="submit" disabled>Delete</button>
+        </div>
+      </form>
+      <div id="delete-err" class="err" role="alert" hidden></div>
+    </section>
+    <p class="center"><a href="/" data-nav class="small">← Back</a> · <a href="/privacy" data-nav class="small">Privacy</a></p>
+  </main>
+
+  <!-- Privacy -->
+  <main id="screen-privacy" class="page narrow prose" hidden>
+    <h1>Privacy</h1>
+    <h2>What we store</h2>
+    <ul>
+      <li>Your display name (you choose it, or your first name from Google).</li>
+      <li>If you use a username and password: the username, and a scrypt hash of the password. The password itself is never stored, and the hash can’t be turned back into it.</li>
+      <li>If you use Google: a Google account number, so we know it’s you next time. Not your email.</li>
+      <li>Who you’re linked with.</li>
+      <li>The video you two are currently on and where you were, so you can pick up where you left off.</li>
+      <li>Your shared playlists: video links, titles, and which of you added each one. Only the two of you can see them, and they’re deleted if you unlink.</li>
+      <li>A video one of you has suggested, until the other answers (for up to a day).</li>
+      <li>Your chat with your partner (the latest 1,000 messages; older ones are deleted for good).</li>
+      <li>What you’ve watched together, and who picked it (the latest 2,000).</li>
+      <li>Your sign-in sessions (stored as one-way hashes, so they can’t be stolen from the database).</li>
+    </ul>
+    <p>Only the two of you can see your chat and history. Either of you can clear them at any time, and they’re deleted for good if you unlink or either of you deletes your account.</p>
+    <h2>What we never store</h2>
+    <ul>
+      <li>Your email, photo, contacts or location.</li>
+      <li>Anything you watch on your own. Only videos you both accepted are in your history.</li>
+    </ul>
+    <h2>Who can see you</h2>
+    <p>Nobody can search for you. The only way to link is a private invite link you send yourself, and you must approve every request. Only your linked partner sees your name.</p>
+    <h2>YouTube</h2>
+    <p>Videos play in YouTube’s own player, so YouTube’s privacy policy applies to the video itself.</p>
+    <h2>Your control</h2>
+    <p>From your account page you can download your data, sign out everywhere, unlink, or delete your account and everything in it.</p>
+    <p class="center"><a href="/" data-nav class="small">← Back</a></p>
+  </main>
+
+  <!-- Watching together -->
+  <div id="room" class="room" hidden>
+    <header class="bar">
+      <a href="/account" data-nav class="logo" aria-label="Account">▶︎</a>
+      <div class="room-info">
+        <div id="video-title" class="title">No video yet</div>
+        <div class="meta"><span id="conn" class="dot" data-s="connecting"></span><span id="presence">Connecting…</span></div>
+      </div>
+      <a href="/account" data-nav class="btn icon-link" aria-label="Your account"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+    </header>
+
+    <div class="room-grid">
+    <div class="room-main">
+    <form id="load" class="row load" autocomplete="off">
+      <input id="url" type="text" inputmode="url" enterkeyhint="go" placeholder="Paste a YouTube link" aria-label="YouTube link" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <button id="paste" class="btn" type="button" hidden>Paste</button>
+      <button id="suggest" class="btn primary" type="submit">Suggest</button>
+      <button id="save-link" class="btn" type="button" title="Save to a playlist">Save</button>
+    </form>
+    <div id="load-err" class="err" role="alert" hidden></div>
+
+    <!-- "Watch this?" waiting for an answer -->
+    <div id="proposal" class="proposal" role="status" aria-live="polite" hidden>
+      <img id="proposal-thumb" class="thumb" alt="" width="96" height="54">
+      <div class="proposal-text">
+        <div id="proposal-who" class="small"></div>
+        <div id="proposal-title" class="proposal-title"></div>
+      </div>
+      <div class="proposal-actions">
+        <button id="proposal-accept" class="btn primary" type="button">Watch</button>
+        <button id="proposal-decline" class="btn" type="button">Not now</button>
+      </div>
+      <div id="proposal-err" class="err" role="alert" hidden></div>
+    </div>
+
+    <div class="stage">
+      <div id="player-box" class="player-box">
+        <div id="empty" class="empty">Paste a YouTube link above to start watching together.</div>
+        <div id="player"></div>
+        <button id="tap" class="tap" type="button" hidden>🔇 Muted · tap for sound</button>
+      </div>
+    </div>
+
+    <div id="controls" class="controls" hidden>
+      <div id="seek" class="seek" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><div class="seek-track"><div class="seek-fill"></div><div class="seek-thumb"></div></div></div>
+      <div class="ctl-row">
+        <span id="time" class="time">0:00 / 0:00</span>
+        <div class="ctl-buttons">
+          <button id="back" class="btn icon" type="button" aria-label="Back 10 seconds">−10</button>
+          <button id="toggle" class="btn icon primary" type="button" aria-label="Play">▶</button>
+          <button id="fwd" class="btn icon" type="button" aria-label="Forward 10 seconds">+10</button>
+        </div>
+        <span id="status" class="status"></span>
+      </div>
+    </div>
+    </div>
+
+    <!-- Chat: beside the video on a computer, a tab on a phone -->
+    <section id="chat" class="chat panel" aria-label="Chat">
+      <div class="chat-head">
+        <h2>Chat</h2>
+        <button id="chat-menu" class="btn small-btn" type="button" aria-label="Clear chat">Clear</button>
+      </div>
+      <div id="chat-clear-confirm" class="row confirm" hidden>
+        <span>Clear the whole chat for both of you?</span>
+        <button id="chat-clear-yes" class="btn danger" type="button">Clear</button>
+        <button id="chat-clear-no" class="btn" type="button">Keep</button>
+      </div>
+      <div id="chat-log" class="chat-log" role="log" aria-live="polite" tabindex="0">
+        <button id="chat-older" class="linkbtn chat-older" type="button" hidden>Show older messages</button>
+        <p id="chat-empty" class="small chat-empty" hidden></p>
+        <ol id="chat-list" class="chat-list"></ol>
+      </div>
+      <form id="chat-form" class="chat-form" autocomplete="off">
+        <textarea id="chat-input" rows="1" maxlength="500" placeholder="Message" aria-label="Message" enterkeyhint="send"></textarea>
+        <button id="chat-send" class="btn primary" type="submit">Send</button>
+      </form>
+      <div id="chat-err" class="err" role="alert" hidden></div>
+    </section>
+    </div>
+
+    <div class="tabbar" role="tablist" aria-label="Chat, playlists and history">
+      <button id="tab-chat" class="tab" role="tab" type="button" aria-controls="chat">Chat <span id="chat-badge" class="badge" hidden></span></button>
+      <button id="tab-lists" class="tab" role="tab" type="button" aria-controls="lists">Watch later</button>
+      <button id="tab-history" class="tab" role="tab" type="button" aria-controls="history">History</button>
+    </div>
+
+    <!-- Shared playlists -->
+    <section id="lists" class="lists panel">
+      <div class="lists-head">
+        <h2>Watch later</h2>
+        <select id="list-pick" aria-label="Playlist"></select>
+        <button id="list-new" class="btn" type="button">New</button>
+        <button id="list-menu" class="btn" type="button" aria-label="Rename or delete this playlist" hidden>⋯</button>
+      </div>
+      <form id="list-new-form" class="row" autocomplete="off" hidden>
+        <input id="list-new-name" type="text" maxlength="40" placeholder="Playlist name, e.g. Movie night" aria-label="Playlist name">
+        <button class="btn primary" type="submit">Create</button>
+        <button id="list-new-cancel" class="btn" type="button">Cancel</button>
+      </form>
+      <div id="list-edit" class="row" hidden>
+        <input id="list-edit-name" type="text" maxlength="40" aria-label="New playlist name">
+        <button id="list-rename" class="btn" type="button">Rename</button>
+        <button id="list-delete" class="btn danger" type="button">Delete</button>
+        <button id="list-edit-cancel" class="btn" type="button">Cancel</button>
+      </div>
+      <div id="list-delete-confirm" class="row confirm" hidden>
+        <span>Delete “<span id="list-delete-name"></span>” and its videos for both of you?</span>
+        <button id="list-delete-yes" class="btn danger" type="button">Delete</button>
+        <button id="list-delete-no" class="btn" type="button">Keep</button>
+      </div>
+      <button id="save-current" class="btn save-current" type="button" hidden>+ Save what’s playing</button>
+      <p id="list-empty" class="small" hidden></p>
+      <ul id="list-items" class="items"></ul>
+      <div id="list-err" class="err" role="alert" hidden></div>
+    </section>
+
+    <!-- Everything you've watched together -->
+    <section id="history" class="lists panel" hidden>
+      <div class="lists-head">
+        <h2>Watched together</h2>
+        <button id="history-clear" class="btn" type="button" hidden>Clear</button>
+      </div>
+      <div id="history-clear-confirm" class="row confirm" hidden>
+        <span>Clear your whole history for both of you?</span>
+        <button id="history-clear-yes" class="btn danger" type="button">Clear</button>
+        <button id="history-clear-no" class="btn" type="button">Keep</button>
+      </div>
+      <p id="history-empty" class="small" hidden>Nothing yet. Videos you both accept will show up here.</p>
+      <ol id="history-list" class="items"></ol>
+      <button id="history-more" class="btn" type="button" hidden>Show more</button>
+      <div id="history-err" class="err" role="alert" hidden></div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <noscript>This app needs JavaScript.</noscript>
+</body>
+</html>

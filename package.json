@@ -1,0 +1,27 @@
+{
+  "name": "watch-together",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Watch YouTube videos in sync with someone else.",
+  "type": "module",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test --test-timeout=20000 test/*.test.js",
+    "test:e2e": "mkdir -p .e2e-env/tmp && TMPDIR=$PWD/.e2e-env/tmp XDG_CACHE_HOME=$PWD/.e2e-env/tmp PLAYWRIGHT_BROWSERS_PATH=0 PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 playwright test",
+    "test:all": "npm test && npm run test:e2e",
+    "setup:e2e": "PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium",
+    "setup:e2e-libs": "node scripts-e2e/fetch-libs.mjs chromium",
+    "restore": "node scripts/restore.js",
+    "reset-password": "node scripts/reset-password.js"
+  },
+  "dependencies": {
+    "ws": "8.18.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.48.2"
+  }
+}

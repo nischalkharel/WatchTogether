@@ -1,0 +1,20 @@
+
+.e2e-env/
+data/
+node_modules/
+playwright-report/
+test-results/
+
+# Local secrets
+.env
+.env.*
+
+# Original model folders and archives (kept locally, never uploaded)
+model_a_after/
+model_b_after/
+*.zip
+
+# Database files anywhere, just in case
+*.db
+*.db-*
+*.bak
